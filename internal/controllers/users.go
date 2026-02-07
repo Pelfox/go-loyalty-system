@@ -76,6 +76,7 @@ func (c *UsersController) Register(w http.ResponseWriter, r *http.Request) {
 	c.setAuthenticationCookie(w, token, r.TLS != nil)
 	if err := pkg.WriteJSON(w, http.StatusOK, resp); err != nil {
 		c.logger.Error().Err(err).Msg("failed to write response")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 }
 
@@ -102,5 +103,6 @@ func (c *UsersController) Login(w http.ResponseWriter, r *http.Request) {
 	c.setAuthenticationCookie(w, token, r.TLS != nil)
 	if err := pkg.WriteJSON(w, http.StatusOK, resp); err != nil {
 		c.logger.Error().Err(err).Msg("failed to write response")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 }

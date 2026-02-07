@@ -9,4 +9,7 @@ var (
 	// ErrUserNotFound указывает на то, что данный пользователь с таким логином
 	// не был найден.
 	ErrUserNotFound = errors.New("user with this login does not exist")
+	// ErrOrderAlreadyExists указывает на то, что заказ с данным номером уже
+	// существует, и не принадлежит данному пользователю.
+	ErrOrderAlreadyExists = errors.New("this order already exists")
 )

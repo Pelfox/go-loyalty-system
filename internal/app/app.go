@@ -22,16 +22,24 @@ func Run(config internal.Config, logger zerolog.Logger) error {
 	}
 
 	usersRepository := postgres.NewUsersRepository(pool)
+	ordersRepository := postgres.NewOrdersRepository(pool)
 
 	router := chi.NewRouter()
 	router.Use(middlewares.LoggerMiddleware(logger))
 
-	router.Route("/api", func(router chi.Router) {
+	router.Route("/api/user", func(router chi.Router) {
+		ordersService := services.NewOrdersService(logger, ordersRepository)
+		ordersController := controllers.NewOrdersController(logger, ordersService)
+
+		// защищённые пути
+		router.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware([]byte(config.JWTSecret)))
+			ordersController.ApplyRoutes(r)
+		})
+
 		usersService := services.NewUsersService(logger, []byte(config.JWTSecret), usersRepository)
 		usersController := controllers.NewUsersController(logger, usersService)
-		router.Route("/user", usersController.ApplyRoutes)
-
-		// TODO: Use router.Use(middlewares.AuthMiddleware([]byte(config.JWTSecret)))
+		router.Group(usersController.ApplyRoutes)
 	})
 
 	// запускаем основной HTTP-сервер

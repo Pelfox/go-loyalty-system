@@ -9,10 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// UserKey создаёт обозначение для ключа context.Context, который несёт в себе
-// информацию об авторизованном и аутентифицированном пользователе.
-type UserKey struct{}
-
 // AuthMiddleware реализует необходимые проверки авторизации/аутентификации.
 func AuthMiddleware(jwtSecret []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -51,7 +47,7 @@ func AuthMiddleware(jwtSecret []byte) func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), UserKey{}, userID)
+			ctx := context.WithValue(r.Context(), internal.UserKey{}, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
