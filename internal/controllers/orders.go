@@ -59,7 +59,7 @@ func (c *OrdersController) Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if errors.Is(err, services.ErrInvalidOrderNumber) {
-			http.Error(w, "invalid order number", http.StatusBadRequest)
+			http.Error(w, "invalid order number", http.StatusUnprocessableEntity)
 			return
 		}
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
