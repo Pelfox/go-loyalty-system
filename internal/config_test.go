@@ -16,6 +16,15 @@ func resetState(t *testing.T) {
 	pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ExitOnError)
 }
 
+// TestMain является входной точкой (entrypoint) для тестов конфигурации. Она
+// очищает все аргументы командной строки, чтобы go test флаги не конфликтовали
+// с pflag внутренне, и тесты запускались.
+func TestMain(m *testing.M) {
+	os.Args = []string{os.Args[0]}
+	pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
+	os.Exit(m.Run())
+}
+
 // TestLoadConfig_Defaults проверяет, что при отсутствии переменных окружения и
 // консольных флагов конфигурация инициализируется значениями по умолчанию.
 func TestLoadConfig_Defaults(t *testing.T) {
