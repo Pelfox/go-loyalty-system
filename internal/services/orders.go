@@ -5,7 +5,6 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/Pelfox/go-loyalty-system/internal/models"
 	"github.com/Pelfox/go-loyalty-system/internal/repositories"
 	"github.com/Pelfox/go-loyalty-system/internal/schemas"
 	"github.com/Pelfox/go-loyalty-system/pkg"
@@ -77,11 +76,22 @@ func (s *OrdersService) Create(
 }
 
 // GetUserOrders получает и возвращает все заказы пользователя с указанным ID.
-func (s *OrdersService) GetUserOrders(ctx context.Context, userID uuid.UUID) ([]*models.Order, error) {
-	orders, err := s.ordersRepository.GetUserOrders(ctx, userID)
+func (s *OrdersService) GetUserOrders(ctx context.Context, userID uuid.UUID) ([]*schemas.UserOrderItem, error) {
+	rawOrders, err := s.ordersRepository.GetUserOrders(ctx, userID)
 	if err != nil {
 		s.logger.Error().Err(err).Msg("failed to get orders for user")
 		return nil, ErrOrdersQueryFailed
 	}
+
+	orders := make([]*schemas.UserOrderItem, 0, len(rawOrders))
+	for _, order := range rawOrders {
+		orders = append(orders, &schemas.UserOrderItem{
+			Number:     order.Number,
+			Status:     order.Status,
+			Accrual:    order.Accrual,
+			UploadedAt: order.UploadedAt,
+		})
+	}
+
 	return orders, nil
 }
