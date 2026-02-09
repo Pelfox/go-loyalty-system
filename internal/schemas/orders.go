@@ -12,9 +12,14 @@ type CreateOrderResponse struct {
 	*models.Order
 }
 
+// UserOrderItem описывает единый, уникальный заказ пользователя.
 type UserOrderItem struct {
-	Number     string             `json:"number"`
-	Status     models.OrderStatus `json:"status"`
-	Accrual    *int               `json:"accrual,omitempty"`
-	UploadedAt time.Time          `json:"uploaded_at"`
+	// Number - номер этого заказа в системе.
+	Number string `json:"number"`
+	// Status - текущее состояние заказа.
+	Status models.OrderStatus `json:"status"`
+	// Accrual - количество начислений за данный заказ.
+	Accrual *int `json:"accrual,omitempty"`
+	// UploadedAt - дата и время, когда был добавлен заказ в систему.
+	UploadedAt time.Time `json:"uploaded_at"`
 }

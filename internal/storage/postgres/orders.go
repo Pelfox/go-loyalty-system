@@ -84,3 +84,40 @@ func (r *OrdersRepository) GetUserOrders(
 
 	return orders, nil
 }
+
+// GetPendingOrders возвращает все заказы, которые нуждаются в обработке.
+// Фильтр происходит по статусу заказа, значение которого должно быть или "NEW"
+// или "PROCESSING". Заказы возвращаются от старых к новым.
+func (r *OrdersRepository) GetPendingOrders(ctx context.Context, limit int) ([]*models.Order, error) {
+	query := "SELECT * FROM orders WHERE status IN ('NEW', 'PROCESSING') ORDER BY uploaded_at LIMIT $1"
+	rows, err := r.db.Query(ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	orders := make([]*models.Order, 0)
+	for rows.Next() {
+		var order models.Order
+		err = rows.Scan(&order.ID, &order.UserID, &order.Number, &order.Accrual, &order.Status, &order.UploadedAt)
+		if err != nil {
+			return nil, err
+		}
+		orders = append(orders, &order)
+	}
+
+	return orders, nil
+}
+
+// UpdateStatus обновляет статус заказа с указанным номером, устанавливая указанный
+// новый статус. Опционально обновляет сумму начислений за заказ.
+func (r *OrdersRepository) UpdateStatus(
+	ctx context.Context,
+	number string,
+	status models.OrderStatus,
+	accrual *int,
+) error {
+	query := "UPDATE orders SET status = $2, accrual = COALESCE($3, accrual) WHERE order_number = $1 AND status != 'PROCESSED'"
+	_, err := r.db.Exec(ctx, query, number, status, accrual)
+	return err
+}

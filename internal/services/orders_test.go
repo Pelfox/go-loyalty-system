@@ -18,6 +18,14 @@ type fakeOrdersRepository struct {
 	getUserOrdersFunc func(ctx context.Context, userID uuid.UUID) ([]*models.Order, error)
 }
 
+func (f *fakeOrdersRepository) GetPendingOrders(_ context.Context, _ int) ([]*models.Order, error) {
+	panic("this method is not supported by the mocking repository - do not call it")
+}
+
+func (f *fakeOrdersRepository) UpdateStatus(_ context.Context, _ string, _ models.OrderStatus, _ *int) error {
+	panic("this method is not supported by the mocking repository - do not call it")
+}
+
 func (f *fakeOrdersRepository) Create(
 	ctx context.Context,
 	userID uuid.UUID,

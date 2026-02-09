@@ -3,8 +3,10 @@ package app
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/Pelfox/go-loyalty-system/internal"
+	"github.com/Pelfox/go-loyalty-system/internal/accrual"
 	"github.com/Pelfox/go-loyalty-system/internal/controllers"
 	"github.com/Pelfox/go-loyalty-system/internal/middlewares"
 	"github.com/Pelfox/go-loyalty-system/internal/services"
@@ -27,6 +29,20 @@ func Run(config internal.Config, logger zerolog.Logger) error {
 
 	usersRepository := postgres.NewUsersRepository(pool)
 	ordersRepository := postgres.NewOrdersRepository(pool)
+
+	// создаём и запускаем фоновый обработчик для внешней системы вознаграждений.
+	workerCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	worker := accrual.NewWorker(
+		logger,
+		ordersRepository,
+		accrual.NewClient(config.AccrualAddr),
+		2*time.Second,
+	)
+	go func() {
+		worker.Run(workerCtx)
+	}()
 
 	router := chi.NewRouter()
 	router.Use(middlewares.LoggerMiddleware(logger))
