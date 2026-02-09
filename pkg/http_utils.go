@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"strings"
 
@@ -58,4 +59,9 @@ func WriteJSON[T any](w http.ResponseWriter, status int, value T) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(value)
+}
+
+// RoundTo2Decimals округляет полученное значение до двух знаков после запятой.
+func RoundTo2Decimals(value float64) float64 {
+	return math.Round(value*100) / 100
 }

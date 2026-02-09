@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Pelfox/go-loyalty-system/internal/models"
 	"github.com/Pelfox/go-loyalty-system/internal/repositories"
 	"github.com/Pelfox/go-loyalty-system/internal/schemas"
 	"github.com/Pelfox/go-loyalty-system/pkg"
@@ -53,8 +54,8 @@ func (s *WithdrawalsService) GetUserBalance(
 	}
 
 	return &schemas.UserBalanceResponse{
-		Current:   income - float64(withdrawals),
-		Withdrawn: withdrawals,
+		Current:   pkg.RoundTo2Decimals(income - withdrawals),
+		Withdrawn: pkg.RoundTo2Decimals(withdrawals),
 	}, nil
 }
 
@@ -66,6 +67,11 @@ func (s *WithdrawalsService) CreateWithdrawal(
 	orderNumber string,
 	sum float64,
 ) (*schemas.WithdrawalResponse, error) {
+	s.logger.Info().Str("user_id", userID.String()).
+		Str("order_number", orderNumber).
+		Float64("sum", sum).
+		Msg("creating withdrawal")
+
 	if !pkg.ValidateString(orderNumber) {
 		return nil, ErrInvalidOrderNumber
 	}
@@ -79,7 +85,15 @@ func (s *WithdrawalsService) CreateWithdrawal(
 		return nil, ErrWithdrawalCreateFailed
 	}
 
-	return &schemas.WithdrawalResponse{Withdrawal: withdrawal}, nil
+	return &schemas.WithdrawalResponse{
+		Withdrawal: &models.Withdrawal{
+			ID:          withdrawal.ID,
+			UserID:      withdrawal.UserID,
+			OrderNumber: withdrawal.OrderNumber,
+			Sum:         pkg.RoundTo2Decimals(withdrawal.Sum),
+			ProcessedAt: withdrawal.ProcessedAt,
+		},
+	}, nil
 }
 
 // GetUserWithdrawals возвращает все операции снятия для данного пользователя.
