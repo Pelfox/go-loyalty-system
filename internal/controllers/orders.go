@@ -72,7 +72,7 @@ func (c *OrdersController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := pkg.WriteJSON(w, http.StatusOK, order); err != nil {
+	if err := pkg.WriteJSON(w, http.StatusAccepted, order); err != nil {
 		c.logger.Error().Err(err).Msg("failed to write response")
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
