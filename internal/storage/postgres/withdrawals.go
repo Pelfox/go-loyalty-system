@@ -20,7 +20,7 @@ func NewWithdrawalsRepository(db *pgxpool.Pool) *WithdrawalsRepository {
 	return &WithdrawalsRepository{db: db}
 }
 
-func (r *WithdrawalsRepository) Create(ctx context.Context, userID uuid.UUID, orderNumber string, sum int64) (*models.Withdrawal, error) {
+func (r *WithdrawalsRepository) Create(ctx context.Context, userID uuid.UUID, orderNumber string, sum float64) (*models.Withdrawal, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func (r *WithdrawalsRepository) Create(ctx context.Context, userID uuid.UUID, or
 
 	defer tx.Rollback(ctx)
 	var totalIncome float64
-	var totalWithdrawn int64
+	var totalWithdrawn float64
 
 	incomeQuery := "SELECT COALESCE(SUM(accrual), 0.0) FROM orders WHERE user_id = $1 AND status = 'PROCESSED'"
 	if err := tx.QueryRow(ctx, incomeQuery, userID).Scan(&totalIncome); err != nil {
@@ -40,7 +40,7 @@ func (r *WithdrawalsRepository) Create(ctx context.Context, userID uuid.UUID, or
 		return nil, err
 	}
 
-	if totalIncome-float64(totalWithdrawn) < float64(sum) {
+	if totalIncome-totalWithdrawn < sum {
 		return nil, repositories.ErrInsufficientFunds
 	}
 
@@ -84,9 +84,9 @@ func (r *WithdrawalsRepository) GetForUser(ctx context.Context, userID uuid.UUID
 	return withdrawals, nil
 }
 
-func (r *WithdrawalsRepository) GetUserBalance(ctx context.Context, userID uuid.UUID) (float64, int64, error) {
+func (r *WithdrawalsRepository) GetUserBalance(ctx context.Context, userID uuid.UUID) (float64, float64, error) {
 	var totalIncome float64
-	var totalWithdrawn int64
+	var totalWithdrawn float64
 
 	query := "SELECT COALESCE(SUM(accrual), 0.0) FROM orders WHERE user_id = $1 AND status = 'PROCESSED'"
 	if err := r.db.QueryRow(ctx, query, userID).Scan(&totalIncome); err != nil {

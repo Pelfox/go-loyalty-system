@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS withdrawals (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     order_number TEXT NOT NULL REFERENCES orders(order_number) ON DELETE CASCADE,
-    sum BIGINT NOT NULL,
+    sum DOUBLE PRECISION NOT NULL,
     processed_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

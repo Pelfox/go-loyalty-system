@@ -64,7 +64,7 @@ func (s *WithdrawalsService) CreateWithdrawal(
 	ctx context.Context,
 	userID uuid.UUID,
 	orderNumber string,
-	sum int64,
+	sum float64,
 ) (*schemas.WithdrawalResponse, error) {
 	if !pkg.ValidateString(orderNumber) {
 		return nil, ErrInvalidOrderNumber

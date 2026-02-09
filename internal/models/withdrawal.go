@@ -15,7 +15,7 @@ type Withdrawal struct {
 	// OrderNumber - номер заказа в системе, за который было списание.
 	OrderNumber string `json:"order_number"`
 	// Sum - сумма списания.
-	Sum int64 `json:"sum"`
+	Sum float64 `json:"sum"`
 	// ProcessedAt - дата и время, когда было произведено списание.
 	ProcessedAt time.Time `json:"processed_at"`
 }

@@ -12,7 +12,7 @@ type UserBalanceResponse struct {
 	// Current - сумма, доступная к снятию для пользователя.
 	Current float64 `json:"current"`
 	// Withdrawn - сумма, которую пользователь снял за всё время.
-	Withdrawn int64 `json:"withdrawn"`
+	Withdrawn float64 `json:"withdrawn"`
 }
 
 // CreateWithdrawalRequest описывает запрос на списание вознаграждений с
@@ -21,7 +21,7 @@ type CreateWithdrawalRequest struct {
 	// Order - номер заказа, с которого необходимо списать вознаграждения.
 	Order string `json:"order" validate:"required"`
 	// Sum - сумма для списания.
-	Sum int64 `json:"sum" validate:"required"`
+	Sum float64 `json:"sum" validate:"required"`
 }
 
 // WithdrawalResponse описывает ответ от сервера на запрос снятия
@@ -35,7 +35,7 @@ type WithdrawalItem struct {
 	// Order - номер заказа, к которому относится списание.
 	Order string `json:"order"`
 	// Sum - сумма данного списания.
-	Sum int64 `json:"sum"`
+	Sum float64 `json:"sum"`
 	// ProcessedAt - дата и время списания.
 	ProcessedAt time.Time `json:"processed_at"`
 }

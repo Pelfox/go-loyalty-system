@@ -14,15 +14,15 @@ import (
 
 // fakeWithdrawalsRepository - mock-репозиторий для тестов.
 type fakeWithdrawalsRepository struct {
-	getUserBalanceFunc func(ctx context.Context, userID uuid.UUID) (float64, int64, error)
-	createFunc         func(ctx context.Context, userID uuid.UUID, orderNumber string, sum int64) (*models.Withdrawal, error)
+	getUserBalanceFunc func(ctx context.Context, userID uuid.UUID) (float64, float64, error)
+	createFunc         func(ctx context.Context, userID uuid.UUID, orderNumber string, sum float64) (*models.Withdrawal, error)
 	getForUserFunc     func(ctx context.Context, userID uuid.UUID) ([]*models.Withdrawal, error)
 }
 
 func (f *fakeWithdrawalsRepository) GetUserBalance(
 	ctx context.Context,
 	userID uuid.UUID,
-) (float64, int64, error) {
+) (float64, float64, error) {
 	return f.getUserBalanceFunc(ctx, userID)
 }
 
@@ -30,7 +30,7 @@ func (f *fakeWithdrawalsRepository) Create(
 	ctx context.Context,
 	userID uuid.UUID,
 	orderNumber string,
-	sum int64,
+	sum float64,
 ) (*models.Withdrawal, error) {
 	return f.createFunc(ctx, userID, orderNumber, sum)
 }
@@ -46,7 +46,7 @@ func (f *fakeWithdrawalsRepository) GetForUser(
 // сервиса.
 func TestWithdrawalsService_GetUserBalance_OK(t *testing.T) {
 	repo := &fakeWithdrawalsRepository{
-		getUserBalanceFunc: func(ctx context.Context, userID uuid.UUID) (float64, int64, error) {
+		getUserBalanceFunc: func(ctx context.Context, userID uuid.UUID) (float64, float64, error) {
 			return 1000, 300, nil
 		},
 	}
@@ -70,7 +70,7 @@ func TestWithdrawalsService_GetUserBalance_OK(t *testing.T) {
 // сервиса при ошибке репозитория.
 func TestWithdrawalsService_GetUserBalance_RepositoryError(t *testing.T) {
 	repo := &fakeWithdrawalsRepository{
-		getUserBalanceFunc: func(ctx context.Context, userID uuid.UUID) (float64, int64, error) {
+		getUserBalanceFunc: func(ctx context.Context, userID uuid.UUID) (float64, float64, error) {
 			return 0, 0, errors.New("db error")
 		},
 	}
@@ -97,7 +97,7 @@ func TestWithdrawalsService_CreateWithdrawal_InvalidOrderNumber(t *testing.T) {
 // поведение сервиса при недостаточном количестве средств у пользователя.
 func TestWithdrawalsService_CreateWithdrawal_InsufficientFunds(t *testing.T) {
 	repo := &fakeWithdrawalsRepository{
-		createFunc: func(ctx context.Context, userID uuid.UUID, orderNumber string, sum int64) (*models.Withdrawal, error) {
+		createFunc: func(ctx context.Context, userID uuid.UUID, orderNumber string, sum float64) (*models.Withdrawal, error) {
 			return nil, repositories.ErrInsufficientFunds
 		},
 	}
@@ -112,7 +112,7 @@ func TestWithdrawalsService_CreateWithdrawal_InsufficientFunds(t *testing.T) {
 // сервиса при ошибке репозитория.
 func TestWithdrawalsService_CreateWithdrawal_RepositoryError(t *testing.T) {
 	repo := &fakeWithdrawalsRepository{
-		createFunc: func(ctx context.Context, userID uuid.UUID, orderNumber string, sum int64) (*models.Withdrawal, error) {
+		createFunc: func(ctx context.Context, userID uuid.UUID, orderNumber string, sum float64) (*models.Withdrawal, error) {
 			return nil, errors.New("db error")
 		},
 	}
@@ -128,7 +128,7 @@ func TestWithdrawalsService_CreateWithdrawal_RepositoryError(t *testing.T) {
 func TestWithdrawalsService_CreateWithdrawal_OK(t *testing.T) {
 	now := time.Now()
 	repo := &fakeWithdrawalsRepository{
-		createFunc: func(ctx context.Context, userID uuid.UUID, orderNumber string, sum int64) (*models.Withdrawal, error) {
+		createFunc: func(ctx context.Context, userID uuid.UUID, orderNumber string, sum float64) (*models.Withdrawal, error) {
 			return &models.Withdrawal{
 				OrderNumber: orderNumber,
 				Sum:         sum,
