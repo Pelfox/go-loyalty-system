@@ -110,7 +110,7 @@ func TestAuthMiddleware_OK(t *testing.T) {
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 
-		ctxUserID, ok := r.Context().Value(UserKey{}).(uuid.UUID)
+		ctxUserID, ok := r.Context().Value(internal.UserKey{}).(uuid.UUID)
 		if !ok {
 			t.Fatalf("userID not found in context")
 		}
