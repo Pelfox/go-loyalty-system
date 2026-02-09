@@ -19,7 +19,7 @@ type UserOrderItem struct {
 	// Status - текущее состояние заказа.
 	Status models.OrderStatus `json:"status"`
 	// Accrual - количество начислений за данный заказ.
-	Accrual *int `json:"accrual,omitempty"`
+	Accrual *float64 `json:"accrual,omitempty"`
 	// UploadedAt - дата и время, когда был добавлен заказ в систему.
 	UploadedAt time.Time `json:"uploaded_at"`
 }

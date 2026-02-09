@@ -25,5 +25,5 @@ type OrderResponse struct {
 	// Status - текущее состояние заказа.
 	Status OrderStatus `json:"status"`
 	// Accrual - начисление за данный заказ, если оно есть.
-	Accrual *int `json:"accrual,omitempty"`
+	Accrual *float64 `json:"accrual,omitempty"`
 }

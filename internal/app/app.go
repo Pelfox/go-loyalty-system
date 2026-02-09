@@ -29,6 +29,7 @@ func Run(config internal.Config, logger zerolog.Logger) error {
 
 	usersRepository := postgres.NewUsersRepository(pool)
 	ordersRepository := postgres.NewOrdersRepository(pool)
+	withdrawalsRepository := postgres.NewWithdrawalsRepository(pool)
 
 	// создаём и запускаем фоновый обработчик для внешней системы вознаграждений.
 	workerCtx, cancel := context.WithCancel(context.Background())
@@ -40,9 +41,7 @@ func Run(config internal.Config, logger zerolog.Logger) error {
 		accrual.NewClient(config.AccrualAddr),
 		2*time.Second,
 	)
-	go func() {
-		worker.Run(workerCtx)
-	}()
+	go func() { worker.Run(workerCtx) }()
 
 	router := chi.NewRouter()
 	router.Use(middlewares.LoggerMiddleware(logger))
@@ -50,11 +49,14 @@ func Run(config internal.Config, logger zerolog.Logger) error {
 	router.Route("/api/user", func(router chi.Router) {
 		ordersService := services.NewOrdersService(logger, ordersRepository)
 		ordersController := controllers.NewOrdersController(logger, ordersService)
+		withdrawalsService := services.NewWithdrawalsService(logger, withdrawalsRepository)
+		withdrawalsController := controllers.NewWithdrawalsController(logger, withdrawalsService)
 
 		// защищённые пути
 		router.Group(func(r chi.Router) {
 			r.Use(middlewares.AuthMiddleware([]byte(config.JWTSecret)))
 			ordersController.ApplyRoutes(r)
+			withdrawalsController.ApplyRoutes(r)
 		})
 
 		usersService := services.NewUsersService(logger, []byte(config.JWTSecret), usersRepository)

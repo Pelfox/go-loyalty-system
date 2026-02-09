@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     order_number TEXT NOT NULL,
-    accrual INT DEFAULT NULL,
+    accrual DOUBLE PRECISION DEFAULT NULL,
     status order_status NOT NULL DEFAULT 'NEW',
     uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 

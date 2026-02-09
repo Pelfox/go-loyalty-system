@@ -33,7 +33,7 @@ type Order struct {
 	// Number - уникальный номер заказа.
 	Number string `json:"number"`
 	// Accrual - количество баллов, начисленное пользователю за заказ.
-	Accrual *int `json:"accrual,omitempty"`
+	Accrual *float64 `json:"accrual,omitempty"`
 	// Status - текущее состояние заказа.
 	Status OrderStatus `json:"status"`
 	// UploadedAt - дата и время, когда заказ был создан.

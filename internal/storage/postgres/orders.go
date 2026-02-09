@@ -22,14 +22,6 @@ func NewOrdersRepository(db *pgxpool.Pool) *OrdersRepository {
 	return &OrdersRepository{db: db}
 }
 
-// Create создаёт новый заказ для указанного пользователя и с указанным номером
-// заказа. В случае удачного создания, возвращает объект models.Order с
-// созданным заказом, иначе - ошибку.
-//
-// Если один и тот же пользователь попробует создать второй заказ с одинаковым
-// ID, данная функция вернёт (nil, nil). В противном случае, в случае попытки
-// создания повторного заказа с одним номером, функция вернёт ошибку
-// repositories.ErrOrderAlreadyExists.
 func (r *OrdersRepository) Create(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -58,9 +50,6 @@ func (r *OrdersRepository) Create(
 	return &order, nil
 }
 
-// GetUserOrders возвращает все заказы для пользователя с указанным ID. Заказы
-// отсортированы по времени создания от самых новых к самым старым. В случае
-// ошибки данная функция возвращает её в неизменном виде.
 func (r *OrdersRepository) GetUserOrders(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -85,9 +74,6 @@ func (r *OrdersRepository) GetUserOrders(
 	return orders, nil
 }
 
-// GetPendingOrders возвращает все заказы, которые нуждаются в обработке.
-// Фильтр происходит по статусу заказа, значение которого должно быть или "NEW"
-// или "PROCESSING". Заказы возвращаются от старых к новым.
 func (r *OrdersRepository) GetPendingOrders(ctx context.Context, limit int) ([]*models.Order, error) {
 	query := "SELECT * FROM orders WHERE status IN ('NEW', 'PROCESSING') ORDER BY uploaded_at LIMIT $1"
 	rows, err := r.db.Query(ctx, query, limit)
@@ -109,13 +95,11 @@ func (r *OrdersRepository) GetPendingOrders(ctx context.Context, limit int) ([]*
 	return orders, nil
 }
 
-// UpdateStatus обновляет статус заказа с указанным номером, устанавливая указанный
-// новый статус. Опционально обновляет сумму начислений за заказ.
 func (r *OrdersRepository) UpdateStatus(
 	ctx context.Context,
 	number string,
 	status models.OrderStatus,
-	accrual *int,
+	accrual *float64,
 ) error {
 	query := "UPDATE orders SET status = $2, accrual = COALESCE($3, accrual) WHERE order_number = $1 AND status != 'PROCESSED'"
 	_, err := r.db.Exec(ctx, query, number, status, accrual)

@@ -9,8 +9,14 @@ import (
 
 // OrdersRepository описывает возможные операции над models.Order.
 type OrdersRepository interface {
-	// Create создаёт новый заказ, привязывая его к пользователю с указанным ID
-	// и задаёт указанный номер заказа.
+	// Create создаёт новый заказ для указанного пользователя и с указанным номером
+	// заказа. В случае удачного создания, возвращает объект models.Order с
+	// созданным заказом, иначе - ошибку.
+	//
+	// Если один и тот же пользователь попробует создать второй заказ с одинаковым
+	// ID, данная функция вернёт (nil, nil). В противном случае, в случае попытки
+	// создания повторного заказа с одним номером, функция вернёт ошибку
+	// repositories.ErrOrderAlreadyExists.
 	Create(ctx context.Context, userID uuid.UUID, number string) (*models.Order, error)
 	// GetUserOrders запрашивает и возвращает все заказы, оформленные данным
 	// пользователем. Заказы отсортированы от самых новых к самым старым.
@@ -24,6 +30,6 @@ type OrdersRepository interface {
 		ctx context.Context,
 		orderNumber string,
 		status models.OrderStatus,
-		accrual *int,
+		accrual *float64,
 	) error
 }

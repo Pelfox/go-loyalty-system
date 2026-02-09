@@ -12,4 +12,7 @@ var (
 	// ErrOrderAlreadyExists указывает на то, что заказ с данным номером уже
 	// существует, и не принадлежит данному пользователю.
 	ErrOrderAlreadyExists = errors.New("this order already exists")
+	// ErrInsufficientFunds используется, если на счету пользователя
+	// недостаточно средств.
+	ErrInsufficientFunds = errors.New("insufficient funds")
 )

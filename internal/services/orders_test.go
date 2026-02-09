@@ -22,7 +22,7 @@ func (f *fakeOrdersRepository) GetPendingOrders(_ context.Context, _ int) ([]*mo
 	panic("this method is not supported by the mocking repository - do not call it")
 }
 
-func (f *fakeOrdersRepository) UpdateStatus(_ context.Context, _ string, _ models.OrderStatus, _ *int) error {
+func (f *fakeOrdersRepository) UpdateStatus(_ context.Context, _ string, _ models.OrderStatus, _ *float64) error {
 	panic("this method is not supported by the mocking repository - do not call it")
 }
 
