@@ -2,7 +2,15 @@ package storage
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+	"path/filepath"
 	"time"
+
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -48,4 +56,31 @@ func NewPostgresPool(
 	cfg.MaxConnLifetime = settings.MaxConnLifetime
 
 	return pgxpool.NewWithConfig(ctx, cfg)
+}
+
+// RunMigrations запускает и применяет все миграции из папки с миграциями.
+func RunMigrations(connString string, migratePath string) error {
+	db, err := sql.Open("postgres", connString)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+	defer driver.Close()
+
+	migrationsDir := fmt.Sprintf("file://%s", filepath.ToSlash(migratePath))
+	migrator, err := migrate.NewWithDatabaseInstance(migrationsDir, "postgres", driver)
+	if err != nil {
+		return err
+	}
+	defer migrator.Close()
+
+	if err := migrator.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return err
+	}
+	return nil
 }

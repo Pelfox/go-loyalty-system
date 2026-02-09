@@ -16,6 +16,10 @@ import (
 
 // Run открывает подключение к базе данных и запускает воркер и HTTP-сервер.
 func Run(config internal.Config, logger zerolog.Logger) error {
+	if err := storage.RunMigrations(config.DatabaseURI, "./migrations"); err != nil {
+		return err
+	}
+
 	pool, err := storage.NewPostgresPool(context.Background(), config.DatabaseURI, storage.DefaultPostgresConnSettings)
 	if err != nil {
 		return err
