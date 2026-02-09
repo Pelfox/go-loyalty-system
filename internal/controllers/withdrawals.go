@@ -34,7 +34,7 @@ func NewWithdrawalsController(
 func (c *WithdrawalsController) ApplyRoutes(router chi.Router) {
 	router.Get("/balance", c.GetUserBalance)
 	router.Post("/balance/withdraw", c.CreateWithdrawal)
-	router.Get("/balance/withdraws", c.GetUserWithdrawals)
+	router.Get("/withdrawals", c.GetUserWithdrawals)
 }
 
 // GetUserBalance возвращает информацию о текущем состоянии счёта пользователя.
