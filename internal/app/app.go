@@ -53,7 +53,7 @@ func Run(config config.Config, logger zerolog.Logger) error {
 		),
 		accrualWorkerPollInterval,
 	)
-	go func() { worker.Run(workerCtx) }()
+	go func() { worker.Run(workerCtx, 1) }()
 
 	router := chi.NewRouter()
 	router.Use(middlewares.LoggerMiddleware(logger))
