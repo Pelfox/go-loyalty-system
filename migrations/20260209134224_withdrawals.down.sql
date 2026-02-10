@@ -1,4 +1,3 @@
-DROP INDEX IF EXISTS idx_withdrawals_order_number;
-DROP INDEX IF EXISTS idx_withdrawals_user_id;
-
-DROP TABLE IF EXISTS withdrawals;
+DROP INDEX idx_withdrawals_order_number;
+DROP INDEX idx_withdrawals_user_id;
+DROP TABLE withdrawals;
