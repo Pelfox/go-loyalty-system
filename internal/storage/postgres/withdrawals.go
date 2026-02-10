@@ -5,7 +5,9 @@ import (
 
 	"github.com/Pelfox/go-loyalty-system/internal/models"
 	"github.com/Pelfox/go-loyalty-system/internal/repositories"
+	"github.com/Pelfox/go-loyalty-system/internal/storage"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -21,45 +23,44 @@ func NewWithdrawalsRepository(db *pgxpool.Pool) *WithdrawalsRepository {
 }
 
 func (r *WithdrawalsRepository) Create(ctx context.Context, userID uuid.UUID, orderNumber string, sum float64) (*models.Withdrawal, error) {
-	tx, err := r.db.Begin(ctx)
+	var withdrawal models.Withdrawal
+	err := storage.WithTxRetry(
+		ctx,
+		r.db,
+		pgx.TxOptions{IsoLevel: pgx.Serializable},
+		func(tx pgx.Tx) error {
+			var totalIncome float64
+			var totalWithdrawn float64
+
+			incomeQuery := "SELECT COALESCE(SUM(accrual), 0.0) FROM orders WHERE user_id = $1 AND status = 'PROCESSED'"
+			if err := tx.QueryRow(ctx, incomeQuery, userID).Scan(&totalIncome); err != nil {
+				return err
+			}
+
+			withdrawalsQuery := "SELECT COALESCE(SUM(sum), 0) FROM withdrawals WHERE user_id = $1"
+			if err := tx.QueryRow(ctx, withdrawalsQuery, userID).Scan(&totalWithdrawn); err != nil {
+				return err
+			}
+
+			if totalIncome-totalWithdrawn < sum {
+				return repositories.ErrInsufficientFunds
+			}
+
+			query := `INSERT INTO withdrawals (user_id, order_number, sum)
+				VALUES ($1, $2, $3)
+				RETURNING id, user_id, order_number, sum, processed_at`
+			return tx.QueryRow(ctx, query, userID, orderNumber, sum).Scan(
+				&withdrawal.ID,
+				&withdrawal.UserID,
+				&withdrawal.OrderNumber,
+				&withdrawal.Sum,
+				&withdrawal.ProcessedAt,
+			)
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
-
-	defer tx.Rollback(ctx)
-	var totalIncome float64
-	var totalWithdrawn float64
-
-	incomeQuery := "SELECT COALESCE(SUM(accrual), 0.0) FROM orders WHERE user_id = $1 AND status = 'PROCESSED'"
-	if err := tx.QueryRow(ctx, incomeQuery, userID).Scan(&totalIncome); err != nil {
-		return nil, err
-	}
-
-	withdrawalsQuery := "SELECT COALESCE(SUM(sum), 0) FROM withdrawals WHERE user_id = $1"
-	if err := tx.QueryRow(ctx, withdrawalsQuery, userID).Scan(&totalWithdrawn); err != nil {
-		return nil, err
-	}
-
-	if totalIncome-totalWithdrawn < sum {
-		return nil, repositories.ErrInsufficientFunds
-	}
-
-	withdrawal := models.Withdrawal{
-		UserID:      userID,
-		OrderNumber: orderNumber,
-		Sum:         sum,
-	}
-
-	query := "INSERT INTO withdrawals (user_id, order_number, sum) VALUES ($1, $2, $3) RETURNING id, processed_at"
-	err = tx.QueryRow(ctx, query, userID, orderNumber, sum).Scan(&withdrawal.ID, &withdrawal.ProcessedAt)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return nil, err
-	}
-
 	return &withdrawal, nil
 }
 

@@ -12,6 +12,8 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -83,4 +85,69 @@ func RunMigrations(connString string, migratePath string) error {
 		return err
 	}
 	return nil
+}
+
+// isRetryable возвращает true, если переданная ошибка - одна из тех, что может
+// быть повторена внутри одной транзакции.
+func isRetryable(err error) bool {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) {
+		return false
+	}
+	return pgErr.Code == "40001" || pgErr.Code == "40P01"
+}
+
+// MaxRetries - максимальное количество попыток повтора единой операции внутри
+// одной транзакции.
+const MaxRetries = 5
+
+// txFn описывает принимаемый тип функции для WithTxRetry.
+type txFn func(tx pgx.Tx) error
+
+// WithTxRetry оборачивает переданную функцию в механизм повтора, в случае если
+// происходит deadlock со стороны PostgreSQL. Функция возвращает последнюю
+// полученную ошибку.
+func WithTxRetry(ctx context.Context, pool *pgxpool.Pool, opts pgx.TxOptions, cb txFn) error {
+	var lastErr error
+
+	for attempt := 0; attempt <= MaxRetries; attempt++ {
+		// если контекст отменён - сразу же прекращаем попытки
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+
+		tx, err := pool.BeginTx(ctx, opts)
+		if err != nil {
+			return err
+		}
+
+		// вызываем callback-функцию
+		if err := cb(tx); err != nil {
+			lastErr = err
+			// пытаемся отменить транзакцию
+			if err := tx.Rollback(ctx); err != nil {
+				return err
+			}
+
+			// проверяем, стоит ли пытаться ещё раз повторить операцию
+			if !isRetryable(err) {
+				return err
+			}
+
+			continue
+		}
+
+		// пытаемся сделать коммит изменений
+		if err := tx.Commit(ctx); err != nil {
+			lastErr = err
+			if !isRetryable(err) {
+				return err
+			}
+			continue
+		}
+
+		return nil
+	}
+
+	return lastErr
 }
