@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Pelfox/go-loyalty-system/internal"
 	"github.com/Pelfox/go-loyalty-system/internal/accrual"
+	"github.com/Pelfox/go-loyalty-system/internal/config"
 	"github.com/Pelfox/go-loyalty-system/internal/controllers"
 	"github.com/Pelfox/go-loyalty-system/internal/middlewares"
 	"github.com/Pelfox/go-loyalty-system/internal/services"
@@ -16,8 +16,16 @@ import (
 	"github.com/rs/zerolog"
 )
 
+// accrualWorkerPollInterval определяет, как часто необходимо делать запрос к
+// внешнему сервису вознаграждений.
+const accrualWorkerPollInterval = 2 * time.Second
+
+// accrualClientMaxRetries определяет максимальное количество повторов единого
+// запроса ко внешнему сервису вознаграждений.
+const accrualClientMaxRetries = 5
+
 // Run открывает подключение к базе данных и запускает воркер и HTTP-сервер.
-func Run(config internal.Config, logger zerolog.Logger) error {
+func Run(config config.Config, logger zerolog.Logger) error {
 	if err := storage.RunMigrations(config.DatabaseURI, "./migrations"); err != nil {
 		return err
 	}
@@ -38,8 +46,12 @@ func Run(config internal.Config, logger zerolog.Logger) error {
 	worker := accrual.NewWorker(
 		logger,
 		ordersRepository,
-		accrual.NewClient(config.AccrualAddr),
-		2*time.Second,
+		accrual.NewClient(
+			config.AccrualAddr,
+			logger,
+			accrualClientMaxRetries,
+		),
+		accrualWorkerPollInterval,
 	)
 	go func() { worker.Run(workerCtx) }()
 

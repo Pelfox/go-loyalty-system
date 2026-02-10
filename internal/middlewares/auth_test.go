@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Pelfox/go-loyalty-system/internal"
+	"github.com/Pelfox/go-loyalty-system/internal/constants"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -38,7 +38,7 @@ func TestAuthMiddleware_InvalidToken(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.AddCookie(&http.Cookie{
-		Name:  internal.SessionCookieName,
+		Name:  constants.SessionCookieName,
 		Value: "invalid-token",
 	})
 
@@ -74,7 +74,7 @@ func TestAuthMiddleware_InvalidUserID(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.AddCookie(&http.Cookie{
-		Name:  internal.SessionCookieName,
+		Name:  constants.SessionCookieName,
 		Value: signedToken,
 	})
 
@@ -110,7 +110,7 @@ func TestAuthMiddleware_OK(t *testing.T) {
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 
-		ctxUserID, ok := r.Context().Value(internal.UserKey{}).(uuid.UUID)
+		ctxUserID, ok := r.Context().Value(constants.UserKey{}).(uuid.UUID)
 		if !ok {
 			t.Fatalf("userID not found in context")
 		}
@@ -123,7 +123,7 @@ func TestAuthMiddleware_OK(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.AddCookie(&http.Cookie{
-		Name:  internal.SessionCookieName,
+		Name:  constants.SessionCookieName,
 		Value: signedToken,
 	})
 

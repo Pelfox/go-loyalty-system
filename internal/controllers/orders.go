@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Pelfox/go-loyalty-system/internal"
+	"github.com/Pelfox/go-loyalty-system/internal/constants"
 	"github.com/Pelfox/go-loyalty-system/internal/services"
 	"github.com/Pelfox/go-loyalty-system/pkg"
 	"github.com/go-chi/chi/v5"
@@ -51,7 +51,7 @@ func (c *OrdersController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	userID := r.Context().Value(internal.UserKey{}).(uuid.UUID)
+	userID := r.Context().Value(constants.UserKey{}).(uuid.UUID)
 	order, err := c.ordersService.Create(r.Context(), userID, string(body))
 	if err != nil {
 		if errors.Is(err, services.ErrOrderAlreadyExists) {
@@ -80,7 +80,7 @@ func (c *OrdersController) Create(w http.ResponseWriter, r *http.Request) {
 
 // GetUserOrders получает и возвращает все заказы пользователя.
 func (c *OrdersController) GetUserOrders(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(internal.UserKey{}).(uuid.UUID)
+	userID := r.Context().Value(constants.UserKey{}).(uuid.UUID)
 	orders, err := c.ordersService.GetUserOrders(r.Context(), userID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

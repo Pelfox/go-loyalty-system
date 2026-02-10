@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/Pelfox/go-loyalty-system/internal"
+	"github.com/Pelfox/go-loyalty-system/internal/constants"
 	"github.com/Pelfox/go-loyalty-system/internal/schemas"
 	"github.com/Pelfox/go-loyalty-system/internal/services"
 	"github.com/Pelfox/go-loyalty-system/pkg"
@@ -39,7 +39,7 @@ func (c *WithdrawalsController) ApplyRoutes(router chi.Router) {
 
 // GetUserBalance возвращает информацию о текущем состоянии счёта пользователя.
 func (c *WithdrawalsController) GetUserBalance(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(internal.UserKey{}).(uuid.UUID)
+	userID := r.Context().Value(constants.UserKey{}).(uuid.UUID)
 	balance, err := c.withdrawalsService.GetUserBalance(r.Context(), userID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -58,7 +58,7 @@ func (c *WithdrawalsController) CreateWithdrawal(w http.ResponseWriter, r *http.
 		return
 	}
 
-	userID := r.Context().Value(internal.UserKey{}).(uuid.UUID)
+	userID := r.Context().Value(constants.UserKey{}).(uuid.UUID)
 	withdrawal, err := c.withdrawalsService.CreateWithdrawal(r.Context(), userID, req.Order, req.Sum)
 	if err != nil {
 		// недостаточно средств
@@ -82,7 +82,7 @@ func (c *WithdrawalsController) CreateWithdrawal(w http.ResponseWriter, r *http.
 
 // GetUserWithdrawals возвращает все списания пользователя.
 func (c *WithdrawalsController) GetUserWithdrawals(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(internal.UserKey{}).(uuid.UUID)
+	userID := r.Context().Value(constants.UserKey{}).(uuid.UUID)
 	withdrawals, err := c.withdrawalsService.GetUserWithdrawals(r.Context(), userID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

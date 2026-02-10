@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/Pelfox/go-loyalty-system/internal"
+	"github.com/Pelfox/go-loyalty-system/internal/constants"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -13,7 +13,7 @@ import (
 func AuthMiddleware(jwtSecret []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			tokenCookie, err := r.Cookie(internal.SessionCookieName)
+			tokenCookie, err := r.Cookie(constants.SessionCookieName)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
@@ -47,7 +47,7 @@ func AuthMiddleware(jwtSecret []byte) func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), internal.UserKey{}, userID)
+			ctx := context.WithValue(r.Context(), constants.UserKey{}, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

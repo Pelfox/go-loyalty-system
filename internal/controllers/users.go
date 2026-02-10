@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/Pelfox/go-loyalty-system/internal"
+	"github.com/Pelfox/go-loyalty-system/internal/constants"
 	"github.com/Pelfox/go-loyalty-system/internal/schemas"
 	"github.com/Pelfox/go-loyalty-system/internal/services"
 	"github.com/Pelfox/go-loyalty-system/pkg"
@@ -43,7 +43,7 @@ func (c *UsersController) setAuthenticationCookie(
 	secure bool,
 ) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     internal.SessionCookieName,
+		Name:     constants.SessionCookieName,
 		Value:    token,
 		Quoted:   false,
 		Path:     "/",

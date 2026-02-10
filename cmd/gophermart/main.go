@@ -3,15 +3,15 @@ package main
 import (
 	"os"
 
-	"github.com/Pelfox/go-loyalty-system/internal"
 	"github.com/Pelfox/go-loyalty-system/internal/app"
+	"github.com/Pelfox/go-loyalty-system/internal/config"
 	"github.com/rs/zerolog"
 )
 
 func main() {
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
-	config, err := internal.LoadConfig()
+	config, err := config.LoadConfig()
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to load application config")
 	}
