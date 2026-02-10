@@ -3,7 +3,7 @@ CREATE TYPE order_status AS ENUM ('NEW', 'PROCESSING', 'INVALID', 'PROCESSED');
 CREATE TABLE orders (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    order_number TEXT NOT NULL,
+    order_number VARCHAR(255) NOT NULL,
     accrual DOUBLE PRECISION DEFAULT NULL,
     status order_status NOT NULL DEFAULT 'NEW',
     uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now(),

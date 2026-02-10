@@ -1,7 +1,7 @@
 CREATE TABLE withdrawals (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    order_number TEXT NOT NULL,
+    order_number VARCHAR(255) NOT NULL,
     sum DOUBLE PRECISION NOT NULL,
     processed_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
