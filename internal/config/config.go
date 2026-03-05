@@ -1,4 +1,4 @@
-package internal
+package config
 
 import (
 	"github.com/spf13/pflag"
@@ -13,6 +13,8 @@ type Config struct {
 	DatabaseURI string `mapstructure:"database_uri"`
 	// AccrualAddr - адрес для подключения к внешней системе лояльности.
 	AccrualAddr string `mapstructure:"accrual_addr"`
+	// JWTSecret - ключ для подписи и валидации JWT токенов системы.
+	JWTSecret string `mapstructure:"jwt_secret"`
 }
 
 // bindField привязывает поле из Config к указанной переменной окружения, а
@@ -48,6 +50,9 @@ func LoadConfig() (Config, error) {
 		return config, err
 	}
 	if err := bindField("accrual_addr", "ACCRUAL_SYSTEM_ADDRESS", "r", "", "Адрес внутренней системы лояльности"); err != nil {
+		return config, err
+	}
+	if err := bindField("jwt_secret", "JWT_SECRET", "j", "", "Ключ для подписи и валидации JWT токенов"); err != nil {
 		return config, err
 	}
 
